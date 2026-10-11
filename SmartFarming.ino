@@ -17,7 +17,9 @@ int Bodenfeuchtigkeitsensor = A0;
 int LEDRot = 5;
 int LEDGruen = 6;
 int Fotowiderstand = A1;
-int PumpenPin = 12;
+int PumpenPinIN1 = 12;
+int PumpenPinIN2 = 11;
+int PumpeSpeed = 50;
 
 // ===== RTC =====
 RTC_DS3231 rtc;
@@ -56,7 +58,8 @@ void setup() {
   pinMode(LEDRot, OUTPUT);
 
   pinMode(Fotowiderstand, INPUT);
-  pinMode(PumpenPin, OUTPUT);
+  pinMode(PumpenPinIN2, OUTPUT);
+  pinMode(PumpenPinIN1, OUTPUT);
 
   Serial.begin(9600);
 
@@ -114,7 +117,6 @@ void BodenfeuchtigkeitMessung() {
   Bodenfeuchtigkeit = map(analogRead(Bodenfeuchtigkeitsensor), 0, 650, 0, 100);
 }
 
-s
 
 // ===== RGB =====
 void RGB_Steuerung() {
@@ -146,9 +148,11 @@ void Lueftung() {
 // ===== GIESSEN =====
 void Giessen() {
   if (Bodenfeuchtigkeit < Trocken) {
-    analogWrite(PumpenPin, 150);
+    analogWrite(PumpenPinIN2, 255 - PumpeSpeed);
+    digitalWrite(PumpenPinIN1, HIGH);
   } else {
-    analogWrite(PumpenPin, 0);
+    digitalWrite(PumpenPinIN1, LOW);
+    digitalWrite(PumpenPinIN2, LOW);
   }
 }
 
@@ -192,4 +196,49 @@ void NeoPixelAnim() {
     delay(100); // kurze Pause
   }
 
+}
+
+// ===== LCD ANZEIGE =====
+void AnzeigeLCD() {
+  DateTime now = rtc.now();
+
+  // Zeile 1: Temperatur
+  lcd.setCursor(0, 0);
+  lcd.print("Temp: ");
+  lcd.print(Temperatur, 1);
+  lcd.print(" ");
+  lcd.write(byte(223)); // Gradzeichen
+  lcd.print("C   ");    // Leerzeichen zum Überschreiben alter Zeichen
+
+  // Zeile 2: Abstand
+  lcd.setCursor(0, 1);
+  lcd.print("Abstand: ");
+  lcd.print(Abstand);
+  lcd.print("cm   ");
+
+  // Zeile 3: Bodenfeuchtigkeit
+  lcd.setCursor(0, 2);
+  lcd.print("Feuchte: ");
+  lcd.print(Bodenfeuchtigkeit);
+  lcd.print("%   ");
+
+  // Zeile 4: Uhrzeit und Datum
+  lcd.setCursor(0, 3);
+  if (now.hour() < 10) lcd.print("0");
+  lcd.print(now.hour());
+  lcd.print(":");
+  if (now.minute() < 10) lcd.print("0");
+  lcd.print(now.minute());
+  lcd.print(":");
+  if (now.second() < 10) lcd.print("0");
+  lcd.print(now.second());
+  lcd.print(" ");
+
+  if (now.day() < 10) lcd.print("0");
+  lcd.print(now.day());
+  lcd.print(".");
+  if (now.month() < 10) lcd.print("0");
+  lcd.print(now.month());
+  lcd.print(".");
+  lcd.print(now.year());
 }
