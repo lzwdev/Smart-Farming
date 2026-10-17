@@ -19,7 +19,7 @@ int LEDGruen = 6;
 int Fotowiderstand = A1;
 int PumpenPinIN1 = 12;
 int PumpenPinIN2 = 11;
-int PumpeSpeed = 50;
+int PumpeSpeed = 75;
 
 // ===== RTC =====
 RTC_DS3231 rtc;
