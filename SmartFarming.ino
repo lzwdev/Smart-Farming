@@ -15,11 +15,13 @@ int Trigger = 3;
 int ECHO = 2;
 int Bodenfeuchtigkeitsensor = A0;
 int LEDRot = 5;
-int LEDGruen = 6;
+int LueftungIN3 = 6;
+int LueftungIN4 = 5;
 int Fotowiderstand = A1;
 int PumpenPinIN1 = 12;
 int PumpenPinIN2 = 11;
-int PumpeSpeed = 75;
+int PumpeSpeed = 50;
+int LueftungSpeed = 75;
 
 // ===== RTC =====
 RTC_DS3231 rtc;
@@ -31,7 +33,7 @@ long NeoG;
 long NeoB;
 float Temperatur = 0.0;
 int Bodenfeuchtigkeit = 0;
-float PflanzentemperaturLimit = 30.0;
+float PflanzentemperaturLimit = 20.0;
 int Trocken = 25;
 int Helligkeit = 0;
 int Tagbeginn = 13;
@@ -54,12 +56,14 @@ void setup() {
   pinMode(greenPin, OUTPUT);
   pinMode(bluePin, OUTPUT);
 
-  pinMode(LEDGruen, OUTPUT);
+//Gruen, OUTPUT);
   pinMode(LEDRot, OUTPUT);
 
   pinMode(Fotowiderstand, INPUT);
   pinMode(PumpenPinIN2, OUTPUT);
   pinMode(PumpenPinIN1, OUTPUT);
+  pinMode(LueftungIN3, OUTPUT);
+  pinMode(LueftungIN4, OUTPUT);
 
   Serial.begin(9600);
 
@@ -139,9 +143,11 @@ void setColor(int r, int g, int b) {
 // ===== LÜFTUNG =====
 void Lueftung() {
   if (Temperatur > PflanzentemperaturLimit) {
-    analogWrite(LEDGruen, Temperatur * 3);
+    analogWrite(LueftungIN4, 255 - LueftungSpeed);
+    digitalWrite(LueftungIN3, HIGH);
   } else {
-    analogWrite(LEDGruen, 0);
+    digitalWrite(LueftungIN4, LOW);
+    digitalWrite(LueftungIN3, LOW);
   }
 }
 
@@ -219,8 +225,13 @@ void AnzeigeLCD() {
   // Zeile 3: Bodenfeuchtigkeit
   lcd.setCursor(0, 2);
   lcd.print("Feuchte: ");
-  lcd.print(Bodenfeuchtigkeit);
-  lcd.print("%   ");
+  if (!(Bodenfeuchtigkeit <= 100)) {
+    lcd.print("ERROR");
+  } else {
+    lcd.print(Bodenfeuchtigkeit);
+    lcd.print("%   ");
+  }
+
 
   // Zeile 4: Uhrzeit und Datum
   lcd.setCursor(0, 3);
